@@ -1,0 +1,5 @@
+Generated with the built-in OpenAI ImageGen tool.
+
+Create one polished square 512x512 plugin icon for 'Positional Cue', a Final Fantasy XIV melee positional helper. No text or letters. Dark navy rounded-square tile, centered clean ivory target/compass pointing upward, bold amber rear arc at bottom and turquoise flank arcs at left and right, one tiny luminous player dot by the lower right boundary. Refined game UI emblem with subtle dimensional metallic shading, very simple bold silhouette readable at 48px, generous margin, no ornate decoration, no weapons, no logos, no watermark. This is an actual downloadable PNG app icon.
+
+The generated raster was downsampled to 128x128 for the Dalamud catalog.

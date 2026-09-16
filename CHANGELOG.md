@@ -1,3 +1,11 @@
+# v0.1.1 — catalog and presentation
+
+- Added an original rear/flank icon and plugin metadata.
+- Available through the shared CheesyChiz/DalamudPlugins `repo.json` catalog.
+- Added `/positionalcue` alias and `/pcue on`, `off`, `sound`, `help`.
+- Existing `/pcue`, `test` and `toggle` commands remain available.
+- In-game validation is still pending; this remains a test release.
+
 # v0.1.0 — test release
 
 - Read-only Wrath Combo positional IPC integration; no changes to other plugins.

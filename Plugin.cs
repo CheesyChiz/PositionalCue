@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager Data { get; private set; } = null!;
     [PluginService] internal static ITextureProvider Textures { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static IChatGui Chat { get; private set; } = null!;
 
     private readonly Configuration config;
     private readonly ICallGateSubscriber<uint[]?> hintIpc;
@@ -48,7 +49,11 @@ public sealed class Plugin : IDalamudPlugin
         hintIpc = Pi.GetIpcSubscriber<uint[]?>("WrathCombo.GetUpcomingPositionalHint");
         Commands.AddHandler("/pcue", new CommandInfo(OnCommand)
         {
-            HelpMessage = "Positional Cue settings. /pcue test: preview; /pcue toggle: enable/disable.",
+            HelpMessage = "Positional Cue settings. Subcommands: test, toggle, on, off, sound, help.",
+        });
+        Commands.AddHandler("/positionalcue", new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Alias for /pcue. Open positional HUD settings; /pcue help lists commands.",
         });
         Pi.UiBuilder.Draw += Draw;
         Pi.UiBuilder.OpenConfigUi += OpenSettings;
@@ -64,7 +69,14 @@ public sealed class Plugin : IDalamudPlugin
         {
             case "test": preview = !preview; settingsOpen = true; break;
             case "toggle": config.Enabled = !config.Enabled; Save(); break;
-            default: settingsOpen = !settingsOpen; break;
+            case "on": config.Enabled = true; Save(); break;
+            case "off": config.Enabled = false; preview = false; Save(); break;
+            case "sound": chime.Play(config.Volume); break;
+            case "help":
+                Chat.Print("[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — включение; sound — проверить звук. /positionalcue — полная команда.");
+                break;
+            case "": settingsOpen = !settingsOpen; break;
+            default: Chat.Print("[Positional Cue] Неизвестная команда. Список: /pcue help"); break;
         }
     }
 
@@ -238,6 +250,7 @@ public sealed class Plugin : IDalamudPlugin
         Pi.UiBuilder.OpenConfigUi -= OpenSettings;
         Pi.UiBuilder.OpenMainUi -= OpenSettings;
         Commands.RemoveHandler("/pcue");
+        Commands.RemoveHandler("/positionalcue");
         chime.Dispose();
     }
 }

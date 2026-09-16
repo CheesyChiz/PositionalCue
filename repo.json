@@ -3,15 +3,17 @@
     "Author": "CheesyChiz",
     "Name": "Positional Cue",
     "InternalName": "PositionalCue",
-    "AssemblyVersion": "0.1.0.0",
+    "AssemblyVersion": "0.1.1.0",
     "Description": "Test release: upcoming rear/flank HUD and a gentle sound cue. Requires Wrath Combo with positional IPC (found in 1.0.4.25). No movement or rotation control. Open /pcue for settings and preview. Built and logic-tested; in-game validation pending.",
     "Punchline": "Wrath positional hints with a quiet sound cue. Test version.",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 15,
     "RepoUrl": "https://github.com/CheesyChiz/PositionalCue",
+    "IconUrl": "https://raw.githubusercontent.com/CheesyChiz/PositionalCue/main/assets/icon.png",
+    "Changelog": "Added plugin icon, shared CheesyChiz catalog, /positionalcue alias and on/off/sound/help commands. In-game validation pending.",
     "Tags": ["positional", "wrath", "melee", "overlay"],
-    "DownloadLinkInstall": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.0/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.0/latest.zip",
-    "DownloadLinkTesting": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.0/latest.zip"
+    "DownloadLinkInstall": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.1/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.1/latest.zip",
+    "DownloadLinkTesting": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.1/latest.zip"
   }
 ]

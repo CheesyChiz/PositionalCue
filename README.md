@@ -1,97 +1,47 @@
-<p align="center"><img src="assets/icon.png" width="128" alt="Positional Cue icon"></p>
+<p align="center"><img src="assets/icon.png" width="128" alt="Positional Cue"></p>
 
-# Positional Cue — тестовая версия
+# Positional Cue
 
-Отдельный Dalamud-плагин: следующий REAR/FLANK из Wrath Combo, иконка способности,
-примерное время до удара, зелёный цвет в правильном секторе и мягкий звуковой сигнал,
-если позицию скоро нужно сменить. Ничего не нажимает и не перемещает персонажа.
+A Dalamud overlay that helps melee players prepare for positional attacks.
+Reads upcoming actions from Wrath Combo through IPC and displays rear/flank,
+the action icon, an approximate GCD countdown and current sector correctness.
+An optional soft chime warns when a position change is needed.
 
-## Требования
+Position, scale, lookahead and sound are configurable. Hints are hidden during
+True North by default. Does not control movement or rotation.
 
-- Windows, Dalamud API 15 / .NET 10.
-- Включённый Wrath Combo с IPC `WrathCombo.GetUpcomingPositionalHint`.
-  Контракт проверен по WrathCombo.API; метод найден в установленной версии 1.0.4.25.
-- В Wrath должен работать соответствующий режим комбо, выдающий подсказки позиционок.
-- BossMod и Avarice для визуального подсказчика не нужны. Их файлы не изменяются.
+## Requirements
 
-## Установка через репозиторий Dalamud
+- [Wrath Combo](https://github.com/PunishXIV/WrathCombo)
 
-В `/xlsettings` → Experimental → Custom Plugin Repositories добавьте:
+## Installation
+
+Add this URL in `/xlsettings` → **Experimental** → **Custom Plugin Repositories**:
 
 ```text
 https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/repo.json
 ```
 
-Сохраните настройки, откройте `/xlplugins`, найдите **Positional Cue** и установите.
-Этот общий каталог содержит также **Stock Manager**. Добавлять отдельный URL для
-каждого плагина не нужно. Ранее добавленный `PositionalCue/main/repo.json` продолжает
-работать, но при переходе на общий каталог его можно удалить из списка репозиториев.
-Включите Wrath Combo, затем откройте `/pcue`. Это тестовый релиз; сначала проверьте
-работу на манекене. Публикация не означает, что версия уже проверена внутри игры.
+Install **Positional Cue** through `/xlplugins`, then open `/pcue`.
 
-## Локальная установка из архива (альтернатива)
+## Commands
 
-1. Распакуйте релиз в отдельную постоянную папку. Не заменяйте файлы Wrath/BossMod/Avarice.
-2. Откройте настройки Dalamud командой `/xlsettings`, раздел Experimental.
-3. Добавьте полный путь к `PositionalCue.dll` в **Dev Plugin Locations**, сохраните.
-4. В `/xlplugins` найдите Positional Cue среди Dev Tools/плагинов разработки и включите.
-5. `/pcue` открывает настройки; `/pcue test` включает предпросмотр.
-
-HUD по умолчанию находится правее и ниже центра экрана. Положение и масштаб
-настраиваются в `/pcue`. Окно пропускает мышь, поэтому его положение задаётся
-параметром «Смещение от центра».
-
-Звук: короткий синтезированный тон, по умолчанию тихий. Настраиваются громкость
-и упреждение; есть кнопка проверки. Автоматический звук только в бою, максимум один
-раз за окно предупреждения, с паузой минимум 2.5 секунды между сигналами.
-`/pcue toggle` быстро выключает/включает подсказчик.
-
-## Команды
-
-| Команда | Действие |
+| Command | Action |
 | --- | --- |
-| `/pcue` | Открыть или закрыть настройки |
-| `/pcue test` | Переключить предпросмотр HUD |
-| `/pcue on` / `/pcue off` | Включить / выключить подсказчик |
-| `/pcue toggle` | Переключить состояние |
-| `/pcue sound` | Проверить мягкий сигнал с текущей громкостью |
-| `/pcue help` | Показать список команд в чате |
+| `/pcue` | Settings |
+| `/pcue test` | Toggle HUD preview |
+| `/pcue on` / `/pcue off` | Enable / disable |
+| `/pcue toggle` | Toggle enabled state |
+| `/pcue sound` | Test sound |
+| `/pcue help` | Command list |
 
-Полная команда `/positionalcue` поддерживает те же подкоманды.
+Alias: `/positionalcue`.
 
-## Ограничения и проверка в игре
+## Build
 
-- Это прототип. Компиляция и проверки логики не заменяют проверку в FFXIV.
-- Данные зависят от Wrath; плагин не вычисляет свою ротацию.
-- Срок годности IPC-подсказки не используется как таймер удара. Секунды — оценка по
-  оставшемуся общему GCD и количеству GCD, которые сообщил Wrath. При недоступном
-  таймере показывается только количество GCD. Задержки, паузы и смена решения Wrath
-  могут изменить фактическое время применения.
-- Проверка «правильно» относится к сектору, а не к дальности удара.
-- При True North HUD по умолчанию скрыт. Подсказки для чужой/старой цели не показываются.
-- Без Wrath HUD скрыт; причина видна в настройках. Доступность IPC проверяется
-  повторно, поэтому порядок включения плагинов не важен.
-- После смены цели правильность прогноза зависит от обновления данных самим Wrath.
-
-Первый тест: предпросмотр, проверка звука, затем манекен на мили-профессии.
-Проверьте REAR/FLANK, изменение цвета при переходе через границу сектора, True North,
-отсутствие повторяющегося звука, выключение Wrath и повторное включение.
-
-## Сборка
-
-Установите .NET 10 SDK и Dalamud dev assemblies. `DALAMUD_HOME` можно задать путём
-к `XIVLauncher/addon/Hooks/dev`.
+.NET 10 SDK and Dalamud API 15 development assemblies.
 
 ```powershell
-dotnet build PositionalCue.csproj -c Release
+dotnet build -c Release
 dotnet run --project Tests/PositionalCue.Tests.csproj -c Release
 ```
-
-Плагин использует только IPC Wrath для чтения. Не получает lease, не переключает
-настройки авторотации и не загружает DLL сторонних плагинов в свою сборку.
-
-## Иконка
-
-Иконка создана встроенным OpenAI ImageGen: тёмная плитка, светлая мишень,
-бирюзовые боковые секторы и янтарный задний сектор. Промпт сохранён в
-`assets/icon-prompt.txt`; PNG уменьшен до 128×128 для каталога Dalamud.

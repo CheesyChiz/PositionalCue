@@ -12,8 +12,8 @@
     "IconUrl": "https://raw.githubusercontent.com/CheesyChiz/PositionalCue/main/assets/icon.png",
     "Changelog": "Added plugin icon, shared CheesyChiz catalog, /positionalcue alias and on/off/sound/help commands. In-game validation pending.",
     "Tags": ["positional", "wrath", "melee", "overlay"],
-    "DownloadLinkInstall": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.1/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.1/latest.zip",
-    "DownloadLinkTesting": "https://github.com/CheesyChiz/PositionalCue/releases/download/v0.1.1/latest.zip"
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.1.1.0.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.1.1.0.zip",
+    "DownloadLinkTesting": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.1.1.0.zip"
   }
 ]

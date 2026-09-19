@@ -1,3 +1,12 @@
+# v0.3.0 — rotation sources
+
+- Manual source selection or automatic selection of the active rotation.
+- BossMod Reborn and Rotation Solver Reborn direction-only IPC support.
+- Pause automatic hints when multiple rotations are active; detect conflicting BossMod forks.
+- No fabricated action IDs or countdowns for direction-only providers.
+- Source-specific dependency status; Wrath Combo is no longer mandatory.
+- Independent player dot with combat/target conditions, size and color controls.
+
 # v0.2.2 — position references
 
 - Optional player position dot with adjustable size and the ring's ground offset.

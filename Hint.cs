@@ -55,7 +55,7 @@ public sealed class CueGate
         }
         lastGcds = hint.GcdsUntil;
         lastSeconds = seconds;
-        var near = hint.GcdsUntil == 1 && (!seconds.HasValue || seconds <= leadSeconds);
+        var near = hint.GcdsUntil <= 1 && (!seconds.HasValue || seconds <= leadSeconds);
         if (!eligible || hint.Satisfied || !near || played || now - lastSound < 2500)
             return false;
         played = true;

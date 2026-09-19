@@ -25,6 +25,30 @@ public sealed partial class Plugin
             DrawIndicator(new(previewRear ? Direction.Rear : Direction.Flank, 0, 1, 1, 1000, previewCorrect), previewSeconds, true);
         else if (config.Enabled && hint is { } current && !(config.HideWhenCorrect && current.Satisfied))
             DrawIndicator(current, seconds, false);
+        DrawPlayerDot();
+    }
+
+    private void DrawPlayerDot()
+    {
+        // Deliberately independent of hint availability, display mode and hint enable state.
+        var player = Objects.LocalPlayer;
+        if (!config.RingPlayerDot || player == null || player.IsDead) return;
+        if (Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
+            || Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51]
+            || Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.OccupiedInCutSceneEvent]
+            || Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.WatchingCutscene78]) return;
+        if (!preview && config.PlayerDotCombatOnly && !Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]) return;
+        if (config.PlayerDotRequireTarget && Targets.Target == null) return;
+        if (GroundRing.Project(player.Position) is not { } ground
+            || !GameGui.WorldToScreen(ground + new Vector3(0, config.RingHeight, 0), out var screen)
+            || !float.IsFinite(screen.X) || !float.IsFinite(screen.Y)) return;
+        var draw = ImGui.GetBackgroundDrawList();
+        var viewport = ImGui.GetMainViewport();
+        draw.PushClipRect(viewport.Pos, viewport.Pos + viewport.Size, true);
+        draw.AddCircleFilled(screen, config.RingPlayerDotSize + 1.5f,
+            ImGui.GetColorU32(new Vector4(0, 0, 0, config.PlayerDotColor.W * 0.87f)));
+        draw.AddCircleFilled(screen, config.RingPlayerDotSize, ImGui.GetColorU32(config.PlayerDotColor));
+        draw.PopClipRect();
     }
 
     private void DrawIndicator(Hint current, float? eta, bool demo)
@@ -83,13 +107,7 @@ public sealed partial class Plugin
                     draw.AddLine(pa, pb, dim, 1.5f);
                 }
         }
-        if (config.RingPlayerDot && GroundRing.Project(Objects.LocalPlayer.Position) is { } playerGround
-            && GameGui.WorldToScreen(playerGround + new Vector3(0, config.RingHeight, 0), out var playerScreen))
-        {
-            draw.AddCircleFilled(playerScreen, config.RingPlayerDotSize + 1.5f, 0xDD000000);
-            draw.AddCircleFilled(playerScreen, config.RingPlayerDotSize, 0xFFFFFFFF);
-        }
-        if (config.RingTimer)
+        if (config.RingTimer && (eta.HasValue || current.GcdsUntil > 0))
         {
             // Place the timer next to a visible ring point, not at the target model's height.
             var anchorIndex = ((int)MathF.Round((rotation + MathF.PI) / MathF.Tau * segments) % segments + segments) % segments;
@@ -153,7 +171,8 @@ public sealed partial class Plugin
             ImGui.BeginGroup();
             ImGui.TextColored(color, current.Direction == Direction.Rear ? T("REAR", "СЗАДИ") : T("FLANK", "СБОКУ"));
             var time = eta?.ToString("0.0", config.Language == 1 ? CultureInfo.GetCultureInfo("ru-RU") : CultureInfo.InvariantCulture);
-            ImGui.TextUnformatted(time != null ? $"~{time} {T("s", "с")} | {current.GcdsUntil} GCD" : $"{current.GcdsUntil} GCD");
+            ImGui.TextUnformatted(time != null ? $"~{time} {T("s", "с")} | {current.GcdsUntil} GCD"
+                : current.GcdsUntil > 0 ? $"{current.GcdsUntil} GCD" : T("Timing unavailable", "Время неизвестно"));
             ImGui.TextColored(color, current.Satisfied ? T("Correct sector", "В нужном секторе") : T("Change position", "Смените позицию"));
             ImGui.EndGroup();
             ImGui.TextDisabled(demo ? T("PREVIEW — drag to move", "ПРЕДПРОСМОТР — перетащите мышью") : actionName);
@@ -173,7 +192,19 @@ public sealed partial class Plugin
             {
                 if (ImGui.BeginTabItem(L("Display", "Отображение")))
                 {
-                    changed |= ImGui.Checkbox(L("Enable", "Включить"), ref config.Enabled);
+                    changed |= ImGui.Checkbox(L("Enable hints", "Включить подсказки"), ref config.Enabled);
+                    var source = (int)config.Source;
+                    if (ImGui.Combo(L("Rotation source", "Источник ротации"), ref source,
+                        new[] { "Wrath Combo", "BossMod Reborn", "Rotation Solver Reborn", T("Auto (active rotation)", "Авто (активная ротация)") }, 4))
+                    {
+                        config.Source = (RotationSource)source;
+                        Clear(T("Source changed", "Источник изменён"));
+                        changed = true;
+                    }
+                    if (config.Source != RotationSource.Wrath)
+                        ImGui.TextWrapped(T("Reborn/RSR supply direction only, drawn on your selected target; keep it aligned with the rotation's target. No action timer. The chime sounds when the hint appears.",
+                            "Reborn/RSR сообщают только сторону для отображения на выбранной цели: она должна совпадать с целью ротации. Без таймера скилла. Звук — при появлении подсказки."));
+                    ImGui.TextWrapped(status);
                     changed |= ImGui.Combo(L("Display mode", "Режим отображения"), ref config.DisplayMode,
                         new[] { T("HUD window", "Окно HUD"), T("Target ring", "Кольцо вокруг цели") }, 2);
                     changed |= ImGui.Checkbox(L("Only in combat", "Только в бою"), ref config.CombatOnly);
@@ -201,9 +232,6 @@ public sealed partial class Plugin
                         changed |= ImGui.Checkbox(L("Contrast outline", "Контрастная обводка"), ref config.RingOutline);
                         changed |= ImGui.Checkbox(L("Countdown fill", "Заполнение по таймеру"), ref config.RingCountdownFill);
                         changed |= ImGui.Checkbox(L("Show time remaining", "Показывать оставшееся время"), ref config.RingTimer);
-                        changed |= ImGui.Checkbox(L("Player position dot", "Точка положения персонажа"), ref config.RingPlayerDot);
-                        if (config.RingPlayerDot)
-                            changed |= ImGui.SliderFloat(L("Dot size", "Размер точки"), ref config.RingPlayerDotSize, 2, 10, "%.1f");
                         changed |= ImGui.Checkbox(L("Quarter boundaries", "Границы четвертей"), ref config.RingQuarterLines);
                         if (ImGui.Button(L("Reset ring colors", "Сбросить цвета кольца")))
                         {
@@ -226,6 +254,19 @@ public sealed partial class Plugin
                     }
                     ImGui.EndTabItem();
                 }
+                if (ImGui.BeginTabItem(L("Player dot", "Точка персонажа")))
+                {
+                    changed |= ImGui.Checkbox(L("Show player dot", "Показывать точку персонажа"), ref config.RingPlayerDot);
+                    changed |= ImGui.Checkbox(L("Dot only in combat", "Точка только в бою"), ref config.PlayerDotCombatOnly);
+                    changed |= ImGui.Checkbox(L("Require selected target", "Только с выбранной целью"), ref config.PlayerDotRequireTarget);
+                    changed |= ImGui.SliderFloat(L("Dot size", "Размер точки"), ref config.RingPlayerDotSize, 2, 10, "%.1f");
+                    changed |= ImGui.ColorEdit4(L("Dot color", "Цвет точки"), ref config.PlayerDotColor, ImGuiColorEditFlags.AlphaBar);
+                    changed |= ImGui.SliderFloat(L("Shared ground offset", "Общее смещение от земли"), ref config.RingHeight, -1, 3, "%.2f");
+                    ImGui.Checkbox(L("Preview", "Предпросмотр"), ref preview);
+                    ImGui.TextWrapped(T("Independent of hints, ring and rotation source. Shares the ring's ground offset. Preview bypasses the combat restriction.",
+                        "Не зависит от подсказок, кольца и источника ротации. Смещение от земли общее с кольцом. Предпросмотр работает вне боя."));
+                    ImGui.EndTabItem();
+                }
                 if (ImGui.BeginTabItem(L("Sound", "Звук")))
                 {
                     changed |= ImGui.Checkbox(L("Soft chime", "Мягкий сигнал"), ref config.SoundEnabled);
@@ -237,9 +278,13 @@ public sealed partial class Plugin
                 }
                 if (ImGui.BeginTabItem(L("Dependencies", "Зависимости")))
                 {
-                    DrawDependency("Wrath Combo", "WrathCombo", true, hintIpc.HasFunction);
+                    DrawDependency("Wrath Combo", "WrathCombo", config.Source == RotationSource.Wrath, hintIpc.HasFunction);
                     ImGui.Separator();
-                    DrawDependency("BossMod", "BossMod", false, Pi.GetIpcSubscriber<string?>("BossMod.Presets.GetActive").HasFunction);
+                    DrawDependency("BossMod Reborn", "BossModReborn", config.Source == RotationSource.BossMod,
+                        Loaded("BossModReborn") && !Loaded("BossMod") && Pi.GetIpcSubscriber<int>("BossMod.Hints.RecommendedPositional").HasFunction);
+                    ImGui.Separator();
+                    DrawDependency("Rotation Solver Reborn", "RotationSolver", config.Source == RotationSource.RotationSolver,
+                        Pi.GetIpcSubscriber<byte>("RotationSolverReborn.GetDesiredPositional").HasFunction);
                     ImGui.Separator();
                     ImGui.TextWrapped(status);
                     ImGui.EndTabItem();

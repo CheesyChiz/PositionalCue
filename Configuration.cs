@@ -19,6 +19,7 @@ public sealed class Configuration : IPluginConfiguration
     public int LookAheadGcds = 3;
     public int Language; // 0 = English, 1 = Russian; existing settings migrate to English.
     public int DisplayMode; // 0 = HUD, 1 = target ring
+    public RotationSource Source = RotationSource.Wrath;
     public float RingThickness = 5f;
     public float RingPadding = 0.15f;
     public Vector4 RingRequiredColor = new(1f, 0.72f, 0.25f, 1f);
@@ -31,6 +32,9 @@ public sealed class Configuration : IPluginConfiguration
     public bool RingPlayerDot = true;
     public bool RingQuarterLines;
     public float RingPlayerDotSize = 4f;
+    public bool PlayerDotCombatOnly = true;
+    public bool PlayerDotRequireTarget;
+    public Vector4 PlayerDotColor = Vector4.One;
 
     public void Normalize()
     {
@@ -40,10 +44,12 @@ public sealed class Configuration : IPluginConfiguration
         LookAheadGcds = Math.Clamp(LookAheadGcds, 1, 3);
         Language = Math.Clamp(Language, 0, 1);
         DisplayMode = Math.Clamp(DisplayMode, 0, 1);
+        if (!Enum.IsDefined(Source)) Source = RotationSource.Wrath;
         RingThickness = float.IsFinite(RingThickness) ? Math.Clamp(RingThickness, 1, 12) : 5;
         RingPadding = float.IsFinite(RingPadding) ? Math.Clamp(RingPadding, 0, 3) : 0.15f;
         RingHeight = float.IsFinite(RingHeight) ? Math.Clamp(RingHeight, -1, 3) : 0.04f;
         RingPlayerDotSize = float.IsFinite(RingPlayerDotSize) ? Math.Clamp(RingPlayerDotSize, 2, 10) : 4;
+        PlayerDotColor = NormalizeColor(PlayerDotColor, Vector4.One);
         RingRequiredColor = NormalizeColor(RingRequiredColor, new(1f, 0.72f, 0.25f, 1f));
         RingCorrectColor = NormalizeColor(RingCorrectColor, new(0.4f, 0.95f, 0.65f, 1f));
         RingBaseColor = NormalizeColor(RingBaseColor, new(0.65f, 0.72f, 0.8f, 0.55f));

@@ -37,7 +37,7 @@ public sealed partial class Plugin : IDalamudPlugin
     private uint iconId;
     private uint cachedAction;
     private string actionName = "";
-    private string status = "Waiting for Wrath Combo...";
+    private string status = "Waiting for rotation source...";
     private bool settingsOpen;
     private bool preview;
     private bool previewRear = true;
@@ -107,32 +107,26 @@ public sealed partial class Plugin : IDalamudPlugin
             if (Conditions[ConditionFlag.BetweenAreas] || Conditions[ConditionFlag.BetweenAreas51]
                 || Conditions[ConditionFlag.OccupiedInCutSceneEvent] || Conditions[ConditionFlag.WatchingCutscene78])
             { Clear(T("Loading / cutscene", "Загрузка / кат-сцена")); return; }
-            if (!hintIpc.HasFunction) { Clear(T("Wrath positional IPC unavailable. Enable/update Wrath Combo.", "IPC позиционок Wrath недоступен. Включите или обновите Wrath Combo.")); return; }
             if (config.CombatOnly && !Conditions[ConditionFlag.InCombat]) { Clear(T("Waiting for combat", "Ожидание боя")); return; }
             if (config.HideDuringTrueNorth && player.StatusList.Any(s => s.StatusId == 1250))
             { Clear(T("True North active — no positional required", "True North активен — позиционка не требуется")); return; }
-            var wire = hintIpc.InvokeFunc();
-            if (!Hint.TryParse(wire, out var value))
-            {
-                Clear(wire == null ? T("Wrath connected — no upcoming positional", "Wrath подключён — предстоящей позиционки нет") : T("Unrecognized / inactive Wrath hint", "Подсказка Wrath не распознана или неактивна"));
-                return;
-            }
+            if (!TryReadSource(out var value)) return;
             // Wrath reports a uint target id. Match its explicit truncation of GameObjectId.
             // Reject old or alternate-target hints rather than prompt for the wrong enemy.
             var target = Targets.Target;
             if (target == null || (uint)target.GameObjectId != value.TargetId)
-            { Clear(T("Wrath hint target differs from current target", "Цель подсказки Wrath отличается от текущей")); return; }
+            { Clear(T("Hint target differs from current target", "Цель подсказки отличается от текущей")); return; }
             if (value.GcdsUntil > config.LookAheadGcds) { Clear(T("Positional outside lookahead", "Позиционка за пределами упреждения")); return; }
             hint = value;
-            seconds = ReadGcd(value.GcdsUntil, out gcdLength);
+            seconds = value.GcdsUntil > 0 ? ReadGcd(value.GcdsUntil, out gcdLength) : null;
             if (cachedAction != value.ActionId)
             {
                 cachedAction = value.ActionId;
                 var row = Data.GetExcelSheet<ActionRow>().GetRowOrDefault(value.ActionId);
-                actionName = row?.Name.ToString() ?? $"Action {value.ActionId}";
+                actionName = value.ActionId == 0 ? SourceName : row?.Name.ToString() ?? $"Action {value.ActionId}";
                 iconId = row?.Icon ?? 0;
             }
-            status = $"{T("Wrath connected", "Wrath подключён")} | {value.ActionId} | {value.GcdsUntil} GCD | {value.TargetId:X}";
+            status = $"{SourceName} | {value.TargetId:X}";
             if (cueGate.Update(value, seconds,
                 config.SoundEnabled && config.Volume > 0 && Conditions[ConditionFlag.InCombat] && !preview,
                 config.SoundLeadSeconds, now))
@@ -140,7 +134,7 @@ public sealed partial class Plugin : IDalamudPlugin
         }
         catch (Exception ex)
         {
-            Clear(T("Wrath unavailable / update error. See /xllog.", "Wrath недоступен / ошибка обновления. См. /xllog."));
+            Clear(T("Source unavailable / update error. See /xllog.", "Источник недоступен / ошибка обновления. См. /xllog."));
             if (now - lastError > 30000)
             {
                 lastError = now;

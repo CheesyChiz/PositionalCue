@@ -3,26 +3,37 @@
 # Positional Cue
 
 A Dalamud overlay that helps melee players prepare for positional attacks.
-Reads upcoming actions from Wrath Combo through IPC and displays rear/flank,
-the action icon, an approximate GCD countdown and current sector correctness.
+Reads positional hints through IPC from Wrath Combo, BossMod Reborn or Rotation Solver Reborn.
+Choose a source manually or select Auto to follow the active rotation.
+Auto pauses hints when multiple supported rotations are active; it does not change their settings.
+Wrath supplies upcoming actions, icons and an approximate GCD countdown.
+Reborn and RSR supply direction only: no action icon, countdown or multi-GCD lookahead.
+Their hints are drawn on your selected target, which must match the rotation's target.
+Direction-only sound cues play when a required position change is reported, not at a timed lead.
 An optional soft chime warns when a position change is needed.
 
 Choose a draggable HUD or a target ring highlighting the required rear/flank sectors.
 The ring follows ground collision surfaces, with adjustable colors, opacity, thickness
 and contrast outline. Vertical offset adjusts height relative to the ground.
 Segments without detected ground are omitted.
-An optional player dot shares the ring's ground offset. Optional quarter boundaries
+An independent player dot has its own enable, combat-only, target-required, size and color settings;
+it shares the ring's ground offset and does not require a positional hint. Optional quarter boundaries
 rotate with the target to separate front, rear and both flanks.
 Highlighted sectors fill as the action approaches; an optional label shows the estimated
 seconds remaining. Timing follows Wrath hints and the current GCD, not a guaranteed cast time.
 Use Preview to position the HUD with the mouse or inspect the ring on a selected target.
 English is the default language; Russian is available in settings.
-The Dependencies tab shows installation, load and IPC status for Wrath Combo and BossMod.
+The Dependencies tab shows installation, load and IPC status for each source.
+Original BossMod is not supported; keep it disabled when using Reborn because they share IPC names.
 Hints are hidden during True North by default. Does not control movement or rotation.
 
 ## Requirements
 
-- [Wrath Combo](https://github.com/PunishXIV/WrathCombo)
+One of:
+
+- [Wrath Combo](https://github.com/PunishXIV/WrathCombo) with positional-hint IPC
+- [BossMod Reborn](https://github.com/FFXIV-CombatReborn/BossmodReborn)
+- [Rotation Solver Reborn](https://github.com/FFXIV-CombatReborn/RotationSolverReborn)
 
 ## Installation
 

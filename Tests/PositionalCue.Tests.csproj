@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="../Hint.cs" Link="Hint.cs" />
     <Compile Include="../SourceSelection.cs" Link="SourceSelection.cs" />
+    <Compile Include="../MovementPreset.cs" Link="MovementPreset.cs" />
     <Compile Include="../RingGeometry.cs" Link="RingGeometry.cs" />
   </ItemGroup>
 </Project>

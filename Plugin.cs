@@ -49,10 +49,11 @@ public sealed partial class Plugin : IDalamudPlugin
     {
         config = Pi.GetPluginConfig() as Configuration ?? new Configuration();
         config.Normalize();
+        config.AutoPosition = false; // Movement always requires an explicit opt-in after loading.
         hintIpc = Pi.GetIpcSubscriber<uint[]?>("WrathCombo.GetUpcomingPositionalHint");
         Commands.AddHandler("/pcue", new CommandInfo(OnCommand)
         {
-            HelpMessage = "Positional Cue settings. Subcommands: test, toggle, on, off, sound, help.",
+            HelpMessage = "Positional Cue settings. Subcommands: test, toggle, on, off, sound, stop, help.",
         });
         Commands.AddHandler("/positionalcue", new CommandInfo(OnCommand)
         {
@@ -75,8 +76,9 @@ public sealed partial class Plugin : IDalamudPlugin
             case "on": config.Enabled = true; Save(); break;
             case "off": config.Enabled = false; preview = false; Save(); break;
             case "sound": chime.Play(config.Volume); break;
+            case "stop": config.AutoPosition = false; ReleaseMovement(); Save(); break;
             case "help":
-                Chat.Print(T("[Positional Cue] /pcue — settings; test — preview; on/off/toggle — enable; sound — test chime. Alias: /positionalcue.", "[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — включение; sound — проверить звук. /positionalcue — полная команда."));
+                Chat.Print(T("[Positional Cue] /pcue — settings; test — preview; on/off/toggle — hints; sound — test chime; stop — release positional movement request. Alias: /positionalcue.", "[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — подсказки; sound — звук; stop — снять запрос движения. /positionalcue — полная команда."));
                 break;
             case "": settingsOpen = !settingsOpen; break;
             default: Chat.Print(T("[Positional Cue] Unknown command. See /pcue help", "[Positional Cue] Неизвестная команда. Список: /pcue help")); break;
@@ -108,7 +110,7 @@ public sealed partial class Plugin : IDalamudPlugin
                 || Conditions[ConditionFlag.OccupiedInCutSceneEvent] || Conditions[ConditionFlag.WatchingCutscene78])
             { Clear(T("Loading / cutscene", "Загрузка / кат-сцена")); return; }
             if (config.CombatOnly && !Conditions[ConditionFlag.InCombat]) { Clear(T("Waiting for combat", "Ожидание боя")); return; }
-            if (config.HideDuringTrueNorth && player.StatusList.Any(s => s.StatusId == 1250))
+            if (config.HideDuringTrueNorth && player.StatusList.Any(s => s.StatusId == 7546))
             { Clear(T("True North active — no positional required", "True North активен — позиционка не требуется")); return; }
             if (!TryReadSource(out var value)) return;
             // Wrath reports a uint target id. Match its explicit truncation of GameObjectId.
@@ -141,6 +143,7 @@ public sealed partial class Plugin : IDalamudPlugin
                 Log.Warning(ex, "Unable to read positional hint");
             }
         }
+        finally { UpdateMovement(); }
     }
 
     private static unsafe float? ReadGcd(int gcdsUntil, out float gcdLength)
@@ -159,6 +162,8 @@ public sealed partial class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        config.AutoPosition = false;
+        if (!ReleaseMovement()) Log.Warning("Unable to clear Reborn positional override on unload; disable the movement preset.");
         if (hudDragDirty) Save();
         Framework.Update -= Update;
         Pi.UiBuilder.Draw -= Draw;

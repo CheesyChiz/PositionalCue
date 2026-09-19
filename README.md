@@ -25,7 +25,22 @@ Use Preview to position the HUD with the mouse or inspect the ring on a selected
 English is the default language; Russian is available in settings.
 The Dependencies tab shows installation, load and IPC status for each source.
 Original BossMod is not supported; keep it disabled when using Reborn because they share IPC names.
-Hints are hidden during True North by default. Does not control movement or rotation.
+Hints are hidden during True North by default. Does not execute combat actions.
+
+## Optional positional movement
+
+Requires BossMod Reborn and Wrath Combo or RSR as the hint source. Enable in `/pcue` → Movement;
+movement starts disabled after each plugin load. Select the movement-only preset named in that tab (default: `Move`) in Reborn.
+It must contain `GoToPositional` with `Positional = Any`, and `NormalMovement` with `Destination = Pathfind`.
+Disable Reborn's `FollowRSRDesiredPositional` (`/bmr cfg AutorotationConfig FollowRSRDesiredPositional false`).
+Keep Reborn and the rotation targeting the selected enemy; do not share this preset's Positional track with another controller.
+
+Only the temporary Positional strategy is changed through IPC. No permanent Reborn settings or presets are edited.
+Wrath requests are limited to the next GCD; RSR requests use its direction-only hint. Requests are removed
+when unnecessary, outside combat, during True North, on disable or unload. `/pcue stop` releases our request.
+Reborn may still move for dodges, range or other preset goals. It cannot avoid unknown mechanics;
+this is not restricted to small clockwise/counterclockwise steps. If cleanup fails or the plugin crashes,
+disable Reborn's movement preset. Test on a training dummy first.
 
 ## Requirements
 
@@ -54,6 +69,7 @@ Install **Positional Cue** through `/xlplugins`, then open `/pcue`.
 | `/pcue on` / `/pcue off` | Enable / disable |
 | `/pcue toggle` | Toggle enabled state |
 | `/pcue sound` | Test sound |
+| `/pcue stop` | Disable positional requests and release the temporary strategy |
 | `/pcue help` | Command list |
 
 Alias: `/positionalcue`.

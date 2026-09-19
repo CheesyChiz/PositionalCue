@@ -59,3 +59,11 @@ Check(SourceSelection.BossDirection(2) == Direction.Rear, "Reborn rear differs f
 Check(SourceSelection.BossDirection(0) == null, "Reborn Any does not imply positional");
 Check(SourceSelection.BossDirection(3) == null, "Reborn Front not a melee positional");
 Check(SourceSelection.BossDirection(99) == null, "unknown Reborn value rejected");
+const string movementJson = """{"Modules":{"BossMod.Autorotation.MiscAI.GoToPositional":[],"BossMod.Autorotation.MiscAI.NormalMovement":[]}}""";
+Check(MovementPreset.IsCompatible(movementJson), "movement-only preset accepted");
+Check(!MovementPreset.IsCompatible("{}"), "missing modules rejected");
+Check(!MovementPreset.IsCompatible("garbage"), "malformed preset rejected");
+Check(!MovementPreset.IsCompatible(movementJson.Replace("GoToPositional", "AutoTarget")), "positional module required");
+Check(!MovementPreset.IsCompatible(movementJson.Replace("NormalMovement", "AutoTarget")), "movement module required");
+Check(!MovementPreset.IsCompatible(movementJson.Replace("GoToPositional\":[]", "GoToPositional\":[{\"Track\":\"Positional\",\"Option\":\"Rear\"}]")), "non-neutral baseline rejected");
+Check(!MovementPreset.IsCompatible(movementJson.Replace("\"Modules\":{", "\"Modules\":{\"BossMod.Autorotation.xan.NIN\":[],")), "combat rotation never classified as movement-only");

@@ -254,6 +254,21 @@ public sealed partial class Plugin
                     }
                     ImGui.EndTabItem();
                 }
+                if (ImGui.BeginTabItem(L("Movement", "Движение")))
+                {
+                    changed |= ImGui.Checkbox(L("Request positionals through Reborn", "Запрашивать позиционки через Reborn"), ref config.AutoPosition);
+                    changed |= ImGui.InputText(L("Movement preset", "Пресет движения"), ref config.MovementPresetName, 128);
+                    changed |= ImGui.SliderFloat(L("Maximum distance outside hitbox", "Максимальное расстояние от хитбокса"), ref config.MovementMaxDistance, 1, 8, "%.1f");
+                    if (ImGui.Button(L("Stop positional requests", "Остановить запросы позиционки")))
+                    { config.AutoPosition = false; ReleaseMovement(); changed = true; }
+                    ImGui.TextWrapped(movementStatus);
+                    ImGui.Separator();
+                    ImGui.TextWrapped(T("In Reborn select your movement-only preset with GoToPositional (Positional = Any) and NormalMovement (Destination = Pathfind). Disable FollowRSRDesiredPositional. Use Wrath/RSR or Auto as the hint source.",
+                        "В Reborn выберите пресет движения с GoToPositional (Positional = Any) и NormalMovement (Destination = Pathfind). Отключите FollowRSRDesiredPositional. Источник подсказок — Wrath/RSR или Авто."));
+                    ImGui.TextWrapped(T("Keep Reborn and your rotation on the selected target. Do not let another tool override this preset's Positional track. Reborn controls the route and may move for other reasons; known AoEs only. /pcue stop removes our request, not Reborn's other movement. Test on a dummy first.",
+                        "Reborn и авторотация должны работать по выбранной цели. Не управляйте треком Positional этого пресета из других инструментов. Путь выбирает Reborn; он может двигаться по другим причинам и учитывает только известные AoE. /pcue stop снимает наш запрос, а не прочие перемещения Reborn. Сначала проверьте на манекене."));
+                    ImGui.EndTabItem();
+                }
                 if (ImGui.BeginTabItem(L("Player dot", "Точка персонажа")))
                 {
                     changed |= ImGui.Checkbox(L("Show player dot", "Показывать точку персонажа"), ref config.RingPlayerDot);

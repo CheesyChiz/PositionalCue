@@ -1,3 +1,11 @@
+# v0.4.0 — optional positional movement
+
+- Forward Wrath/RSR positional requests to Reborn GoToPositional via temporary strategy IPC.
+- Explicit per-load opt-in, movement-preset validation, range limit and cleanup on stop/unload.
+- Movement-only Reborn presets no longer conflict with external combat rotations in Auto mode.
+- Require neutral positional baseline and disable Reborn's direct RSR override before requesting movement.
+- Correct the True North status ID.
+
 # v0.3.0 — rotation sources
 
 - Manual source selection or automatic selection of the active rotation.

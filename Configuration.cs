@@ -20,6 +20,9 @@ public sealed class Configuration : IPluginConfiguration
     public int Language; // 0 = English, 1 = Russian; existing settings migrate to English.
     public int DisplayMode; // 0 = HUD, 1 = target ring
     public RotationSource Source = RotationSource.Wrath;
+    public bool AutoPosition;
+    public string MovementPresetName = "Move";
+    public float MovementMaxDistance = 4;
     public float RingThickness = 5f;
     public float RingPadding = 0.15f;
     public Vector4 RingRequiredColor = new(1f, 0.72f, 0.25f, 1f);
@@ -45,6 +48,8 @@ public sealed class Configuration : IPluginConfiguration
         Language = Math.Clamp(Language, 0, 1);
         DisplayMode = Math.Clamp(DisplayMode, 0, 1);
         if (!Enum.IsDefined(Source)) Source = RotationSource.Wrath;
+        MovementPresetName = (MovementPresetName ?? "Move").Trim();
+        MovementMaxDistance = float.IsFinite(MovementMaxDistance) ? Math.Clamp(MovementMaxDistance, 1, 8) : 4;
         RingThickness = float.IsFinite(RingThickness) ? Math.Clamp(RingThickness, 1, 12) : 5;
         RingPadding = float.IsFinite(RingPadding) ? Math.Clamp(RingPadding, 0, 3) : 0.15f;
         RingHeight = float.IsFinite(RingHeight) ? Math.Clamp(RingHeight, -1, 3) : 0.04f;

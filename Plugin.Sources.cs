@@ -31,7 +31,7 @@ public sealed partial class Plugin
         var bossConflict = Loaded("BossMod") && Loaded("BossModReborn");
         if (bossConflict && config.Source is RotationSource.BossMod or RotationSource.Auto)
         { Clear(T("Both BossMod forks are loaded — disable the original", "Загружены обе версии BossMod — отключите оригинал")); return false; }
-        var boss = BossActive();
+        var boss = BossActive() && !IsMovementPreset(RebornPreset());
         var solver = Loaded("RotationSolver") && ReadBool("RotationSolverReborn.AutorotationActive");
         var selected = SourceSelection.Select(config.Source, wrath, boss, solver);
         if (selected != activeSource) { cueGate.Reset(); cachedAction = uint.MaxValue; activeSource = selected; }

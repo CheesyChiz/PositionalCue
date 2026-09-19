@@ -8,6 +8,8 @@ namespace PositionalCue;
 public sealed partial class Plugin
 {
     private bool hudDragDirty;
+    private readonly GroundRing groundRing = new();
+    private float previewSeconds = 2;
     private string T(string english, string russian) => config.Language == 1 ? russian : english;
     private string L(string english, string russian) => T(english, russian) + "###" + english;
 
@@ -20,40 +22,68 @@ public sealed partial class Plugin
             hudDragDirty = false;
         }
         if (preview)
-            DrawIndicator(new(previewRear ? Direction.Rear : Direction.Flank, 0, 1, 1, 1000, previewCorrect), 0.9f, true);
+            DrawIndicator(new(previewRear ? Direction.Rear : Direction.Flank, 0, 1, 1, 1000, previewCorrect), previewSeconds, true);
         else if (config.Enabled && hint is { } current && !(config.HideWhenCorrect && current.Satisfied))
             DrawIndicator(current, seconds, false);
     }
 
     private void DrawIndicator(Hint current, float? eta, bool demo)
     {
-        if (config.DisplayMode == 1) DrawRing(current, demo);
+        if (config.DisplayMode == 1) DrawRing(current, eta, demo);
         else DrawHud(current, eta, demo);
     }
 
-    private void DrawRing(Hint current, bool demo)
+    private void DrawRing(Hint current, float? eta, bool demo)
     {
         var target = Targets.Target;
         if (Objects.LocalPlayer == null || target == null || (!demo && (uint)target.GameObjectId != current.TargetId)) return;
         var radius = Math.Max(0.5f, target.HitboxRadius) + config.RingPadding;
-        var center = target.Position + new Vector3(0, 0.05f, 0);
+        var center = target.Position;
         var rotation = target.Rotation;
         if (!float.IsFinite(radius) || !float.IsFinite(rotation) || radius > 200) return;
+        if (Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
+            || Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51]) return;
+        groundRing.Update(target.GameObjectId, center, radius);
         var draw = ImGui.GetBackgroundDrawList();
         var viewport = ImGui.GetMainViewport();
         draw.PushClipRect(viewport.Pos, viewport.Pos + viewport.Size, true);
-        var bright = ImGui.GetColorU32(current.Satisfied ? new Vector4(0.4f, 0.95f, 0.65f, 1) : new Vector4(1, 0.72f, 0.25f, 1));
-        var dim = ImGui.GetColorU32(new Vector4(0.65f, 0.72f, 0.8f, 0.4f));
-        const int segments = 128;
+        var activeColor = current.Satisfied ? config.RingCorrectColor : config.RingRequiredColor;
+        var bright = ImGui.GetColorU32(activeColor);
+        var dim = ImGui.GetColorU32(config.RingBaseColor);
+        var dark = ImGui.GetColorU32(activeColor * new Vector4(0.38f, 0.38f, 0.38f, 1));
+        var progress = eta is { } remaining ? RingGeometry.CountdownProgress(remaining, gcdLength * config.LookAheadGcds) : 1;
+        const int segments = GroundRing.Segments;
         for (var i = 0; i < segments; i++)
         {
-            var a = i * MathF.Tau / segments;
-            var b = (i + 1) * MathF.Tau / segments;
-            if (!GameGui.WorldToScreen(RingGeometry.Point(center, rotation, radius, a), out var p1)
-                || !GameGui.WorldToScreen(RingGeometry.Point(center, rotation, radius, b), out var p2)) continue;
+            if (groundRing.Points[i] is not { } start || groundRing.Points[(i + 1) % segments] is not { } end) continue;
+            if (MathF.Abs(start.Y - end.Y) > 1) continue;
+            start.Y += config.RingHeight;
+            end.Y += config.RingHeight;
+            if (!GameGui.WorldToScreen(start, out var p1) || !GameGui.WorldToScreen(end, out var p2)) continue;
             if (!float.IsFinite(p1.X) || !float.IsFinite(p1.Y) || !float.IsFinite(p2.X) || !float.IsFinite(p2.Y)) continue;
-            var highlight = RingGeometry.Highlight((a + b) / 2, current.Direction);
-            draw.AddLine(p1, p2, highlight ? bright : dim, highlight ? config.RingThickness : Math.Max(1, config.RingThickness * 0.35f));
+            var relativeAngle = (i + 0.5f) * MathF.Tau / segments - rotation;
+            var highlight = RingGeometry.Highlight(relativeAngle, current.Direction);
+            var filled = !config.RingCountdownFill || RingGeometry.SectorProgress(relativeAngle, current.Direction) <= progress;
+            var thickness = highlight ? config.RingThickness : Math.Max(1, config.RingThickness * 0.45f);
+            if (config.RingOutline)
+                draw.AddLine(p1, p2, ImGui.GetColorU32(new Vector4(0.015f, 0.02f, 0.03f,
+                    0.65f * (highlight ? activeColor.W : config.RingBaseColor.W))), thickness + 2);
+            draw.AddLine(p1, p2, highlight ? (filled ? bright : dark) : dim, thickness);
+        }
+        if (config.RingTimer)
+        {
+            // Place the timer next to a visible ring point, not at the target model's height.
+            var anchorIndex = ((int)MathF.Round((rotation + MathF.PI) / MathF.Tau * segments) % segments + segments) % segments;
+            if (groundRing.Points[anchorIndex] is { } anchor && GameGui.WorldToScreen(anchor + new Vector3(0, config.RingHeight, 0), out var labelPos))
+            {
+                var time = eta?.ToString("0.0", config.Language == 1 ? CultureInfo.GetCultureInfo("ru-RU") : CultureInfo.InvariantCulture);
+                var label = time != null ? $"~{time} {T("s", "с")}" : $"{current.GcdsUntil} GCD";
+                var textSize = ImGui.CalcTextSize(label);
+                labelPos += new Vector2(-textSize.X / 2, 10);
+                draw.AddRectFilled(labelPos - new Vector2(5, 3), labelPos + textSize + new Vector2(5, 3),
+                    ImGui.GetColorU32(new Vector4(0.02f, 0.025f, 0.035f, 0.82f)), 4);
+                draw.AddText(labelPos, bright, label);
+            }
         }
         draw.PopClipRect();
     }
@@ -145,6 +175,20 @@ public sealed partial class Plugin
                     {
                         changed |= ImGui.SliderFloat(L("Line thickness", "Толщина линии"), ref config.RingThickness, 1, 12, "%.1f");
                         changed |= ImGui.SliderFloat(L("Hitbox padding", "Отступ от хитбокса"), ref config.RingPadding, 0, 3, "%.2f");
+                        changed |= ImGui.SliderFloat(L("Vertical offset", "Смещение по высоте"), ref config.RingHeight, -1, 3, "%.2f");
+                        changed |= ImGui.ColorEdit4(L("Required sector", "Нужный сектор"), ref config.RingRequiredColor, ImGuiColorEditFlags.AlphaBar);
+                        changed |= ImGui.ColorEdit4(L("Correct position", "Правильная позиция"), ref config.RingCorrectColor, ImGuiColorEditFlags.AlphaBar);
+                        changed |= ImGui.ColorEdit4(L("Rest of ring", "Остальное кольцо"), ref config.RingBaseColor, ImGuiColorEditFlags.AlphaBar);
+                        changed |= ImGui.Checkbox(L("Contrast outline", "Контрастная обводка"), ref config.RingOutline);
+                        changed |= ImGui.Checkbox(L("Countdown fill", "Заполнение по таймеру"), ref config.RingCountdownFill);
+                        changed |= ImGui.Checkbox(L("Show time remaining", "Показывать оставшееся время"), ref config.RingTimer);
+                        if (ImGui.Button(L("Reset ring colors", "Сбросить цвета кольца")))
+                        {
+                            config.RingRequiredColor = new(1, 0.72f, 0.25f, 1);
+                            config.RingCorrectColor = new(0.4f, 0.95f, 0.65f, 1);
+                            config.RingBaseColor = new(0.65f, 0.72f, 0.8f, 0.55f);
+                            changed = true;
+                        }
                     }
                     ImGui.Separator();
                     ImGui.Checkbox(L("Preview", "Предпросмотр"), ref preview);
@@ -152,6 +196,7 @@ public sealed partial class Plugin
                     {
                         ImGui.Checkbox(L("Rear (otherwise flank)", "Сзади (иначе сбоку)"), ref previewRear);
                         ImGui.Checkbox(L("Correct sector", "Правильный сектор"), ref previewCorrect);
+                        ImGui.SliderFloat(L("Preview time (seconds)", "Время в предпросмотре (сек.)"), ref previewSeconds, 0, 8, "%.1f");
                         ImGui.TextWrapped(config.DisplayMode == 0
                             ? T("Drag the preview window to position it. Release to save.", "Перетащите окно предпросмотра. Положение сохранится при отпускании мыши.")
                             : T("Select a target to preview its ring outside combat.", "Выберите цель для предпросмотра кольца вне боя."));

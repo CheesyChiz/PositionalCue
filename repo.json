@@ -3,23 +3,23 @@
     "Author": "CheesyChiz",
     "Name": "Positional Cue",
     "InternalName": "PositionalCue",
-    "AssemblyVersion": "0.2.0.0",
+    "AssemblyVersion": "0.2.1.0",
     "Description": "Displays upcoming Wrath Combo positionals as a draggable HUD or a target ring highlighting rear/flank. Includes optional sound cues, English/Russian settings and integration status. Requires Wrath Combo. Settings: /pcue.",
     "Punchline": "Upcoming positional attacks with visual and sound cues.",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 15,
     "RepoUrl": "https://github.com/CheesyChiz/PositionalCue",
     "IconUrl": "https://raw.githubusercontent.com/CheesyChiz/PositionalCue/main/assets/icon.png",
-    "Changelog": "English/Russian UI, draggable HUD preview, target ring mode and a Dependencies tab.",
+    "Changelog": "Ground-projected ring with adjustable height, colors and thickness; positional countdown fill and timer.",
     "Tags": [
       "positional",
       "wrath",
       "melee",
       "overlay"
     ],
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.2.0.0.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.2.0.0.zip",
-    "DownloadLinkTesting": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.2.0.0.zip",
-    "LastUpdate": 1789807263
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.2.1.0.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.2.1.0.zip",
+    "DownloadLinkTesting": "https://raw.githubusercontent.com/CheesyChiz/DalamudPlugins/main/packages/PositionalCue/0.2.1.0.zip",
+    "LastUpdate": 1789807966
   }
 ]

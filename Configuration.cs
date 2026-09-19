@@ -21,6 +21,13 @@ public sealed class Configuration : IPluginConfiguration
     public int DisplayMode; // 0 = HUD, 1 = target ring
     public float RingThickness = 5f;
     public float RingPadding = 0.15f;
+    public Vector4 RingRequiredColor = new(1f, 0.72f, 0.25f, 1f);
+    public Vector4 RingCorrectColor = new(0.4f, 0.95f, 0.65f, 1f);
+    public Vector4 RingBaseColor = new(0.65f, 0.72f, 0.8f, 0.55f);
+    public bool RingOutline = true;
+    public bool RingCountdownFill = true;
+    public bool RingTimer = true;
+    public float RingHeight = 0.04f;
 
     public void Normalize()
     {
@@ -32,6 +39,14 @@ public sealed class Configuration : IPluginConfiguration
         DisplayMode = Math.Clamp(DisplayMode, 0, 1);
         RingThickness = float.IsFinite(RingThickness) ? Math.Clamp(RingThickness, 1, 12) : 5;
         RingPadding = float.IsFinite(RingPadding) ? Math.Clamp(RingPadding, 0, 3) : 0.15f;
+        RingHeight = float.IsFinite(RingHeight) ? Math.Clamp(RingHeight, -1, 3) : 0.04f;
+        RingRequiredColor = NormalizeColor(RingRequiredColor, new(1f, 0.72f, 0.25f, 1f));
+        RingCorrectColor = NormalizeColor(RingCorrectColor, new(0.4f, 0.95f, 0.65f, 1f));
+        RingBaseColor = NormalizeColor(RingBaseColor, new(0.65f, 0.72f, 0.8f, 0.55f));
         if (!float.IsFinite(Offset.X) || !float.IsFinite(Offset.Y)) Offset = new(110, 100);
     }
+
+    private static Vector4 NormalizeColor(Vector4 color, Vector4 fallback) =>
+        float.IsFinite(color.X) && float.IsFinite(color.Y) && float.IsFinite(color.Z) && float.IsFinite(color.W)
+            ? Vector4.Clamp(color, Vector4.Zero, Vector4.One) : fallback;
 }

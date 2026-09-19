@@ -8,6 +8,11 @@ the action icon, an approximate GCD countdown and current sector correctness.
 An optional soft chime warns when a position change is needed.
 
 Choose a draggable HUD or a target ring highlighting the required rear/flank sectors.
+The ring follows ground collision surfaces, with adjustable colors, opacity, thickness
+and contrast outline. Vertical offset adjusts height relative to the ground.
+Segments without detected ground are omitted.
+Highlighted sectors fill as the action approaches; an optional label shows the estimated
+seconds remaining. Timing follows Wrath hints and the current GCD, not a guaranteed cast time.
 Use Preview to position the HUD with the mouse or inspect the ring on a selected target.
 English is the default language; Russian is available in settings.
 The Dependencies tab shows installation, load and IPC status for Wrath Combo and BossMod.

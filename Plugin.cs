@@ -33,6 +33,7 @@ public sealed partial class Plugin : IDalamudPlugin
     private readonly SoftChime chime = new();
     private Hint? hint;
     private float? seconds;
+    private float gcdLength = 2.5f;
     private uint iconId;
     private uint cachedAction;
     private string actionName = "";
@@ -123,7 +124,7 @@ public sealed partial class Plugin : IDalamudPlugin
             { Clear(T("Wrath hint target differs from current target", "Цель подсказки Wrath отличается от текущей")); return; }
             if (value.GcdsUntil > config.LookAheadGcds) { Clear(T("Positional outside lookahead", "Позиционка за пределами упреждения")); return; }
             hint = value;
-            seconds = ReadGcd(value.GcdsUntil);
+            seconds = ReadGcd(value.GcdsUntil, out gcdLength);
             if (cachedAction != value.ActionId)
             {
                 cachedAction = value.ActionId;
@@ -148,8 +149,9 @@ public sealed partial class Plugin : IDalamudPlugin
         }
     }
 
-    private static unsafe float? ReadGcd(int gcdsUntil)
+    private static unsafe float? ReadGcd(int gcdsUntil, out float gcdLength)
     {
+        gcdLength = 2.5f;
         var manager = ActionManager.Instance();
         if (manager == null) return null;
         // Sprint is not a GCD. Use the melee role's basic shared-GCD weapon skill
@@ -157,6 +159,7 @@ public sealed partial class Plugin : IDalamudPlugin
         const uint sharedGcdProbe = 9;
         var total = manager->GetRecastTime(ActionType.Action, sharedGcdProbe);
         var elapsed = manager->GetRecastTimeElapsed(ActionType.Action, sharedGcdProbe);
+        if (float.IsFinite(total) && total is >= 1 and <= 5) gcdLength = total;
         return Hint.EstimateSeconds(gcdsUntil, total, elapsed);
     }
 

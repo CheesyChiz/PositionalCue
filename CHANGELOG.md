@@ -1,3 +1,13 @@
+# v0.2.1 — ground ring styling
+
+- Project ring samples onto ground collision surfaces; skip missing terrain and sharp drops.
+- Cache ground queries and keep sector highlighting aligned with target rotation.
+- Configurable required-sector, correct-position and base-ring colors, including opacity.
+- Subtle contrast outline and a more visible base ring; line thickness remains adjustable.
+- Required sectors fill from dark to bright as the estimated action time approaches.
+- Optional time label beside the ring and an adjustable preview countdown.
+- Vertical offset slider relative to detected ground, from -1 to +3 game units.
+
 # v0.2.0 — display modes and localization
 
 - English by default, with optional Russian in settings.

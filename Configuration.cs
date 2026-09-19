@@ -28,6 +28,9 @@ public sealed class Configuration : IPluginConfiguration
     public bool RingCountdownFill = true;
     public bool RingTimer = true;
     public float RingHeight = 0.04f;
+    public bool RingPlayerDot = true;
+    public bool RingQuarterLines;
+    public float RingPlayerDotSize = 4f;
 
     public void Normalize()
     {
@@ -40,6 +43,7 @@ public sealed class Configuration : IPluginConfiguration
         RingThickness = float.IsFinite(RingThickness) ? Math.Clamp(RingThickness, 1, 12) : 5;
         RingPadding = float.IsFinite(RingPadding) ? Math.Clamp(RingPadding, 0, 3) : 0.15f;
         RingHeight = float.IsFinite(RingHeight) ? Math.Clamp(RingHeight, -1, 3) : 0.04f;
+        RingPlayerDotSize = float.IsFinite(RingPlayerDotSize) ? Math.Clamp(RingPlayerDotSize, 2, 10) : 4;
         RingRequiredColor = NormalizeColor(RingRequiredColor, new(1f, 0.72f, 0.25f, 1f));
         RingCorrectColor = NormalizeColor(RingCorrectColor, new(0.4f, 0.95f, 0.65f, 1f));
         RingBaseColor = NormalizeColor(RingBaseColor, new(0.65f, 0.72f, 0.8f, 0.55f));

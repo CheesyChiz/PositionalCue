@@ -11,6 +11,8 @@ Choose a draggable HUD or a target ring highlighting the required rear/flank sec
 The ring follows ground collision surfaces, with adjustable colors, opacity, thickness
 and contrast outline. Vertical offset adjusts height relative to the ground.
 Segments without detected ground are omitted.
+An optional player dot shares the ring's ground offset. Optional quarter boundaries
+rotate with the target to separate front, rear and both flanks.
 Highlighted sectors fill as the action approaches; an optional label shows the estimated
 seconds remaining. Timing follows Wrath hints and the current GCD, not a guaranteed cast time.
 Use Preview to position the HUD with the mouse or inspect the ring on a selected target.

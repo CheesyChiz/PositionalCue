@@ -43,7 +43,7 @@ public sealed partial class Plugin
         if (!float.IsFinite(radius) || !float.IsFinite(rotation) || radius > 200) return;
         if (Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas]
             || Conditions[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51]) return;
-        groundRing.Update(target.GameObjectId, center, radius);
+        groundRing.Update(target.GameObjectId, center, radius, rotation);
         var draw = ImGui.GetBackgroundDrawList();
         var viewport = ImGui.GetMainViewport();
         draw.PushClipRect(viewport.Pos, viewport.Pos + viewport.Size, true);
@@ -69,6 +69,25 @@ public sealed partial class Plugin
                 draw.AddLine(p1, p2, ImGui.GetColorU32(new Vector4(0.015f, 0.02f, 0.03f,
                     0.65f * (highlight ? activeColor.W : config.RingBaseColor.W))), thickness + 2);
             draw.AddLine(p1, p2, highlight ? (filled ? bright : dark) : dim, thickness);
+        }
+        if (config.RingQuarterLines)
+        {
+            for (var quarter = 0; quarter < 4; quarter++)
+                for (var step = 0; step < 16; step++)
+                {
+                    if (groundRing.Dividers[quarter, step] is not { } a || groundRing.Dividers[quarter, step + 1] is not { } b
+                        || MathF.Abs(a.Y - b.Y) > 1) continue;
+                    var offset = new Vector3(0, config.RingHeight, 0);
+                    if (!GameGui.WorldToScreen(a + offset, out var pa) || !GameGui.WorldToScreen(b + offset, out var pb)) continue;
+                    if (config.RingOutline) draw.AddLine(pa, pb, 0xA6000000, 3);
+                    draw.AddLine(pa, pb, dim, 1.5f);
+                }
+        }
+        if (config.RingPlayerDot && GroundRing.Project(Objects.LocalPlayer.Position) is { } playerGround
+            && GameGui.WorldToScreen(playerGround + new Vector3(0, config.RingHeight, 0), out var playerScreen))
+        {
+            draw.AddCircleFilled(playerScreen, config.RingPlayerDotSize + 1.5f, 0xDD000000);
+            draw.AddCircleFilled(playerScreen, config.RingPlayerDotSize, 0xFFFFFFFF);
         }
         if (config.RingTimer)
         {
@@ -182,6 +201,10 @@ public sealed partial class Plugin
                         changed |= ImGui.Checkbox(L("Contrast outline", "Контрастная обводка"), ref config.RingOutline);
                         changed |= ImGui.Checkbox(L("Countdown fill", "Заполнение по таймеру"), ref config.RingCountdownFill);
                         changed |= ImGui.Checkbox(L("Show time remaining", "Показывать оставшееся время"), ref config.RingTimer);
+                        changed |= ImGui.Checkbox(L("Player position dot", "Точка положения персонажа"), ref config.RingPlayerDot);
+                        if (config.RingPlayerDot)
+                            changed |= ImGui.SliderFloat(L("Dot size", "Размер точки"), ref config.RingPlayerDotSize, 2, 10, "%.1f");
+                        changed |= ImGui.Checkbox(L("Quarter boundaries", "Границы четвертей"), ref config.RingQuarterLines);
                         if (ImGui.Button(L("Reset ring colors", "Сбросить цвета кольца")))
                         {
                             config.RingRequiredColor = new(1, 0.72f, 0.25f, 1);

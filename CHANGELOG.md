@@ -1,3 +1,8 @@
+# v0.2.2 — position references
+
+- Optional player position dot with adjustable size and the ring's ground offset.
+- Optional target-relative quarter boundaries separating front, rear and both flanks.
+
 # v0.2.1 — ground ring styling
 
 - Project ring samples onto ground collision surfaces; skip missing terrain and sharp drops.

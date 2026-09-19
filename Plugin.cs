@@ -12,7 +12,7 @@ using ActionRow = Lumina.Excel.Sheets.Action;
 
 namespace PositionalCue;
 
-public sealed class Plugin : IDalamudPlugin
+public sealed partial class Plugin : IDalamudPlugin
 {
     [PluginService] internal static IDalamudPluginInterface Pi { get; private set; } = null!;
     [PluginService] internal static ICommandManager Commands { get; private set; } = null!;
@@ -24,6 +24,8 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static ITextureProvider Textures { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
     [PluginService] internal static IChatGui Chat { get; private set; } = null!;
+
+    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
 
     private readonly Configuration config;
     private readonly ICallGateSubscriber<uint[]?> hintIpc;
@@ -73,10 +75,10 @@ public sealed class Plugin : IDalamudPlugin
             case "off": config.Enabled = false; preview = false; Save(); break;
             case "sound": chime.Play(config.Volume); break;
             case "help":
-                Chat.Print("[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — включение; sound — проверить звук. /positionalcue — полная команда.");
+                Chat.Print(T("[Positional Cue] /pcue — settings; test — preview; on/off/toggle — enable; sound — test chime. Alias: /positionalcue.", "[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — включение; sound — проверить звук. /positionalcue — полная команда."));
                 break;
             case "": settingsOpen = !settingsOpen; break;
-            default: Chat.Print("[Positional Cue] Неизвестная команда. Список: /pcue help"); break;
+            default: Chat.Print(T("[Positional Cue] Unknown command. See /pcue help", "[Positional Cue] Неизвестная команда. Список: /pcue help")); break;
         }
     }
 
@@ -97,29 +99,29 @@ public sealed class Plugin : IDalamudPlugin
         nextPoll = now + 50;
         try
         {
-            if (!config.Enabled) { Clear("Disabled"); return; }
+            if (!config.Enabled) { Clear(T("Disabled", "Выключено")); return; }
             var player = Objects.LocalPlayer;
-            if (player == null) { Clear("Not logged in"); return; }
-            if (player.IsDead) { Clear("Character is KO"); return; }
+            if (player == null) { Clear(T("Not logged in", "Персонаж не в игре")); return; }
+            if (player.IsDead) { Clear(T("Character is KO", "Персонаж погиб")); return; }
             if (Conditions[ConditionFlag.BetweenAreas] || Conditions[ConditionFlag.BetweenAreas51]
                 || Conditions[ConditionFlag.OccupiedInCutSceneEvent] || Conditions[ConditionFlag.WatchingCutscene78])
-            { Clear("Loading / cutscene"); return; }
-            if (!hintIpc.HasFunction) { Clear("Wrath positional IPC unavailable. Enable/update Wrath Combo."); return; }
-            if (config.CombatOnly && !Conditions[ConditionFlag.InCombat]) { Clear("Waiting for combat"); return; }
+            { Clear(T("Loading / cutscene", "Загрузка / кат-сцена")); return; }
+            if (!hintIpc.HasFunction) { Clear(T("Wrath positional IPC unavailable. Enable/update Wrath Combo.", "IPC позиционок Wrath недоступен. Включите или обновите Wrath Combo.")); return; }
+            if (config.CombatOnly && !Conditions[ConditionFlag.InCombat]) { Clear(T("Waiting for combat", "Ожидание боя")); return; }
             if (config.HideDuringTrueNorth && player.StatusList.Any(s => s.StatusId == 1250))
-            { Clear("True North active — no positional required"); return; }
+            { Clear(T("True North active — no positional required", "True North активен — позиционка не требуется")); return; }
             var wire = hintIpc.InvokeFunc();
             if (!Hint.TryParse(wire, out var value))
             {
-                Clear(wire == null ? "Wrath connected — no upcoming positional" : "Unrecognized / inactive Wrath hint");
+                Clear(wire == null ? T("Wrath connected — no upcoming positional", "Wrath подключён — предстоящей позиционки нет") : T("Unrecognized / inactive Wrath hint", "Подсказка Wrath не распознана или неактивна"));
                 return;
             }
             // Wrath reports a uint target id. Match its explicit truncation of GameObjectId.
             // Reject old or alternate-target hints rather than prompt for the wrong enemy.
             var target = Targets.Target;
             if (target == null || (uint)target.GameObjectId != value.TargetId)
-            { Clear("Wrath hint target differs from current target"); return; }
-            if (value.GcdsUntil > config.LookAheadGcds) { Clear("Positional outside lookahead"); return; }
+            { Clear(T("Wrath hint target differs from current target", "Цель подсказки Wrath отличается от текущей")); return; }
+            if (value.GcdsUntil > config.LookAheadGcds) { Clear(T("Positional outside lookahead", "Позиционка за пределами упреждения")); return; }
             hint = value;
             seconds = ReadGcd(value.GcdsUntil);
             if (cachedAction != value.ActionId)
@@ -129,7 +131,7 @@ public sealed class Plugin : IDalamudPlugin
                 actionName = row?.Name.ToString() ?? $"Action {value.ActionId}";
                 iconId = row?.Icon ?? 0;
             }
-            status = $"Wrath connected | action {value.ActionId} | {value.GcdsUntil} GCD | target {value.TargetId:X}";
+            status = $"{T("Wrath connected", "Wrath подключён")} | {value.ActionId} | {value.GcdsUntil} GCD | {value.TargetId:X}";
             if (cueGate.Update(value, seconds,
                 config.SoundEnabled && config.Volume > 0 && Conditions[ConditionFlag.InCombat] && !preview,
                 config.SoundLeadSeconds, now))
@@ -137,7 +139,7 @@ public sealed class Plugin : IDalamudPlugin
         }
         catch (Exception ex)
         {
-            Clear("Wrath unavailable / update error. See /xllog.");
+            Clear(T("Wrath unavailable / update error. See /xllog.", "Wrath недоступен / ошибка обновления. См. /xllog."));
             if (now - lastError > 30000)
             {
                 lastError = now;
@@ -158,93 +160,9 @@ public sealed class Plugin : IDalamudPlugin
         return Hint.EstimateSeconds(gcdsUntil, total, elapsed);
     }
 
-    private void Draw()
-    {
-        if (settingsOpen) DrawSettings();
-        if (preview) DrawHud(new(previewRear ? Direction.Rear : Direction.Flank, 0, 1, 1, 1000, previewCorrect), 0.9f, true);
-        else if (config.Enabled && hint is { } current && !(config.HideWhenCorrect && current.Satisfied))
-            DrawHud(current, seconds, false);
-    }
-
-    private void DrawHud(Hint current, float? eta, bool demo)
-    {
-        var scale = config.Scale;
-        var viewport = ImGui.GetMainViewport();
-        var size = new Vector2(270, 95) * scale;
-        var desired = viewport.Pos + viewport.Size * 0.5f + config.Offset;
-        desired = Vector2.Clamp(desired, viewport.Pos, Vector2.Max(viewport.Pos, viewport.Pos + viewport.Size - size));
-        ImGui.SetNextWindowPos(desired, ImGuiCond.Always);
-        ImGui.SetNextWindowSize(size, ImGuiCond.Always);
-        ImGui.SetNextWindowBgAlpha(0.87f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 9 * scale);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 9) * scale);
-        var flags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings
-            | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoInputs;
-        if (ImGui.Begin("Positional Cue HUD###PositionalCueHud", flags))
-        {
-            ImGui.SetWindowFontScale(scale);
-            var color = current.Satisfied ? new Vector4(0.40f, 0.91f, 0.65f, 1) : new Vector4(1, 0.72f, 0.30f, 1);
-            var top = ImGui.GetCursorScreenPos();
-            var iconSize = new Vector2(48) * scale;
-            var texture = !demo && iconId != 0 ? Textures.GetFromGameIcon(new GameIconLookup(iconId)).GetWrapOrDefault() : null;
-            if (texture != null) ImGui.Image(texture.Handle, iconSize);
-            else
-            {
-                ImGui.GetWindowDrawList().AddRectFilled(top, top + iconSize, ImGui.GetColorU32(color * new Vector4(0.35f, 0.35f, 0.35f, 1)), 6 * scale);
-                ImGui.GetWindowDrawList().AddText(top + new Vector2(17, 14) * scale, ImGui.GetColorU32(color), current.Direction == Direction.Rear ? "R" : "F");
-                ImGui.Dummy(iconSize);
-            }
-            ImGui.SameLine();
-            ImGui.BeginGroup();
-            ImGui.TextColored(color, current.Direction == Direction.Rear ? "REAR / СЗАДИ" : "FLANK / СБОКУ");
-            ImGui.TextUnformatted(eta is { } time ? $"~{time:0.0} s  |  {current.GcdsUntil} GCD" : $"Через {current.GcdsUntil} GCD");
-            ImGui.TextColored(color, current.Satisfied ? "В нужном секторе" : "Смените позицию");
-            ImGui.EndGroup();
-            ImGui.TextDisabled(demo ? "PREVIEW — пробный индикатор" : actionName);
-            ImGui.SetWindowFontScale(1);
-        }
-        ImGui.End();
-        ImGui.PopStyleVar(2);
-    }
-
-    private void DrawSettings()
-    {
-        ImGui.SetNextWindowSize(new Vector2(530, 540), ImGuiCond.FirstUseEver);
-        if (ImGui.Begin("Positional Cue — настройки", ref settingsOpen, ImGuiWindowFlags.NoCollapse))
-        {
-            ImGui.TextWrapped("Подсказки позиционок от Wrath Combo. Плагин не управляет движением или ротацией.");
-            ImGui.Separator();
-            var changed = ImGui.Checkbox("Включить подсказчик", ref config.Enabled);
-            changed |= ImGui.Checkbox("Показывать только в бою", ref config.CombatOnly);
-            changed |= ImGui.Checkbox("Скрывать, если сектор уже правильный", ref config.HideWhenCorrect);
-            changed |= ImGui.Checkbox("Скрывать во время True North", ref config.HideDuringTrueNorth);
-            changed |= ImGui.SliderInt("Упреждение, GCD", ref config.LookAheadGcds, 1, 3);
-            changed |= ImGui.SliderFloat("Масштаб", ref config.Scale, 0.7f, 2f, "%.2f");
-            changed |= ImGui.DragFloat2("Смещение от центра", ref config.Offset, 1, -4000, 4000, "%.0f");
-            if (ImGui.Button("Сбросить положение")) { config.Offset = new(110, 100); changed = true; }
-            ImGui.Separator();
-            changed |= ImGui.Checkbox("Мягкий звуковой сигнал", ref config.SoundEnabled);
-            changed |= ImGui.SliderFloat("Громкость", ref config.Volume, 0, 0.4f, "%.2f");
-            changed |= ImGui.SliderFloat("Сигнал за, сек. (примерно)", ref config.SoundLeadSeconds, 0.3f, 3f, "%.1f");
-            if (ImGui.Button("Проверить звук")) chime.Play(config.Volume);
-            ImGui.TextWrapped("Один сигнал, когда ближайшая позиционка требует смены сектора. Вне боя автоматический звук отключён.");
-            ImGui.Separator();
-            ImGui.Checkbox("Предпросмотр HUD", ref preview);
-            if (preview)
-            {
-                ImGui.Checkbox("Пример: REAR (иначе FLANK)", ref previewRear);
-                ImGui.Checkbox("Пример: правильный сектор", ref previewCorrect);
-            }
-            ImGui.TextWrapped(status);
-            ImGui.TextDisabled("Секунды приблизительные; решение Wrath может измениться.");
-            ImGui.TextWrapped("Нужен Wrath с GetUpcomingPositionalHint. BossMod и Avarice для этого HUD не требуются.");
-            if (changed) { config.Normalize(); Save(); }
-        }
-        ImGui.End();
-    }
-
     public void Dispose()
     {
+        if (hudDragDirty) Save();
         Framework.Update -= Update;
         Pi.UiBuilder.Draw -= Draw;
         Pi.UiBuilder.OpenConfigUi -= OpenSettings;

@@ -7,8 +7,11 @@ Reads upcoming actions from Wrath Combo through IPC and displays rear/flank,
 the action icon, an approximate GCD countdown and current sector correctness.
 An optional soft chime warns when a position change is needed.
 
-Position, scale, lookahead and sound are configurable. Hints are hidden during
-True North by default. Does not control movement or rotation.
+Choose a draggable HUD or a target ring highlighting the required rear/flank sectors.
+Use Preview to position the HUD with the mouse or inspect the ring on a selected target.
+English is the default language; Russian is available in settings.
+The Dependencies tab shows installation, load and IPC status for Wrath Combo and BossMod.
+Hints are hidden during True North by default. Does not control movement or rotation.
 
 ## Requirements
 

@@ -28,3 +28,12 @@ Check(!gate.Update(hint, 1, true, 1.2f, 18100), "dropouts cannot bypass cooldown
 Check(!gate.Update(hint with { GcdsUntil = 2 }, 3, true, 1.2f, 22000), "not yet next GCD");
 Check(gate.Update(hint, 1, true, 1.2f, 24000), "next positional window");
 Console.WriteLine("All checks passed.");
+Check(RingGeometry.Highlight(MathF.PI, Direction.Rear), "rear arc highlights back");
+Check(!RingGeometry.Highlight(0, Direction.Rear), "rear excludes front");
+Check(RingGeometry.Highlight(MathF.PI / 2, Direction.Flank), "right flank");
+Check(RingGeometry.Highlight(-MathF.PI / 2, Direction.Flank), "left flank");
+Check(!RingGeometry.Highlight(MathF.PI, Direction.Flank), "flank excludes rear");
+var back = RingGeometry.Point(System.Numerics.Vector3.Zero, 0, 2, MathF.PI);
+Check(MathF.Abs(back.Z + 2) < 0.001f, "rotation zero rear is negative Z");
+var rotated = RingGeometry.Point(System.Numerics.Vector3.Zero, MathF.PI / 2, 2, MathF.PI);
+Check(MathF.Abs(rotated.X + 2) < 0.001f, "ring follows target rotation");

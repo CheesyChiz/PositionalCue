@@ -5,5 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup><Compile Include="../Hint.cs" Link="Hint.cs" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="../Hint.cs" Link="Hint.cs" />
+    <Compile Include="../RingGeometry.cs" Link="RingGeometry.cs" />
+  </ItemGroup>
 </Project>

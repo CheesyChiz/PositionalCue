@@ -1,3 +1,12 @@
+# v0.2.0 — display modes and localization
+
+- English by default, with optional Russian in settings.
+- Drag the HUD in Preview; the position is saved on release.
+- Target ring mode highlights rear or both flank sectors relative to the target's rotation.
+- Separate Display, Sound and Dependencies tabs.
+- Live installation, loaded-state and IPC checks for Wrath Combo and BossMod.
+- Existing position, sound and display preferences are retained.
+
 # v0.1.1 — catalog and presentation
 
 - Added an original rear/flank icon and plugin metadata.

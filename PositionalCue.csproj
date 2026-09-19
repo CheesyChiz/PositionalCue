@@ -1,11 +1,11 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>0.1.1.0</Version>
+    <Version>0.2.0.0</Version>
     <Author>CheesyChiz</Author>
     <Name>Positional Cue</Name>
     <InternalName>PositionalCue</InternalName>
     <Punchline>Upcoming rear/flank hints and a gentle sound cue from Wrath Combo.</Punchline>
-    <Description>A standalone visual positional helper. Requires Wrath Combo with the upcoming positional IPC. Displays the next positional, an approximate GCD-based countdown, and whether you are in the correct sector. Optional quiet sound. No movement or rotation control.</Description>
+    <Description>Displays upcoming Wrath Combo positionals as a draggable HUD or a target ring highlighting rear/flank. Includes optional sound cues, English/Russian settings and integration status. Requires Wrath Combo. Settings: /pcue.</Description>
     <Tags>positional;wrath;melee;overlay</Tags>
     <RepoUrl>https://github.com/CheesyChiz/PositionalCue</RepoUrl>
     <IconUrl>https://raw.githubusercontent.com/CheesyChiz/PositionalCue/main/assets/icon.png</IconUrl>

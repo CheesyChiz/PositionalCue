@@ -49,11 +49,10 @@ public sealed partial class Plugin : IDalamudPlugin
     {
         config = Pi.GetPluginConfig() as Configuration ?? new Configuration();
         config.Normalize();
-        config.AutoPosition = false; // Movement always requires an explicit opt-in after loading.
         hintIpc = Pi.GetIpcSubscriber<uint[]?>("WrathCombo.GetUpcomingPositionalHint");
         Commands.AddHandler("/pcue", new CommandInfo(OnCommand)
         {
-            HelpMessage = "Positional Cue settings. Subcommands: test, toggle, on, off, sound, stop, help.",
+            HelpMessage = "Positional Cue settings. Subcommands: test, toggle, on, off, sound, help.",
         });
         Commands.AddHandler("/positionalcue", new CommandInfo(OnCommand)
         {
@@ -76,9 +75,8 @@ public sealed partial class Plugin : IDalamudPlugin
             case "on": config.Enabled = true; Save(); break;
             case "off": config.Enabled = false; preview = false; Save(); break;
             case "sound": chime.Play(config.Volume); break;
-            case "stop": config.AutoPosition = false; ReleaseMovement(); Save(); break;
             case "help":
-                Chat.Print(T("[Positional Cue] /pcue — settings; test — preview; on/off/toggle — hints; sound — test chime; stop — release positional movement request. Alias: /positionalcue.", "[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — подсказки; sound — звук; stop — снять запрос движения. /positionalcue — полная команда."));
+                Chat.Print(T("[Positional Cue] /pcue — settings; test — preview; on/off/toggle — hints; sound — test chime. Alias: /positionalcue.", "[Positional Cue] /pcue — настройки; test — предпросмотр; on/off/toggle — подсказки; sound — звук. /positionalcue — полная команда."));
                 break;
             case "": settingsOpen = !settingsOpen; break;
             default: Chat.Print(T("[Positional Cue] Unknown command. See /pcue help", "[Positional Cue] Неизвестная команда. Список: /pcue help")); break;
@@ -100,6 +98,7 @@ public sealed partial class Plugin : IDalamudPlugin
         var now = Environment.TickCount64;
         if (now < nextPoll) return;
         nextPoll = now + 50;
+        UpdateForecast();
         try
         {
             if (!config.Enabled) { Clear(T("Disabled", "Выключено")); return; }
@@ -143,7 +142,6 @@ public sealed partial class Plugin : IDalamudPlugin
                 Log.Warning(ex, "Unable to read positional hint");
             }
         }
-        finally { UpdateMovement(); }
     }
 
     private static unsafe float? ReadGcd(int gcdsUntil, out float gcdLength)
@@ -162,9 +160,7 @@ public sealed partial class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        config.AutoPosition = false;
-        if (!ReleaseMovement()) Log.Warning("Unable to clear Reborn positional override on unload; disable the movement preset.");
-        if (hudDragDirty) Save();
+        if (hudDragDirty || forecastDragDirty) Save();
         Framework.Update -= Update;
         Pi.UiBuilder.Draw -= Draw;
         Pi.UiBuilder.OpenConfigUi -= OpenSettings;

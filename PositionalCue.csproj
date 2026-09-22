@@ -1,11 +1,11 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>0.4.0.0</Version>
+    <Version>0.5.0.0</Version>
     <Author>CheesyChiz</Author>
     <Name>Positional Cue</Name>
     <InternalName>PositionalCue</InternalName>
-    <Punchline>Positional hints from Wrath Combo, BossMod Reborn or Rotation Solver Reborn.</Punchline>
-    <Description>Rear/flank HUD and target ring with sound cues. Manual or automatic source selection. Wrath supports action countdowns; Reborn and RSR provide direction-only hints on your selected target. Requires one supported rotation plugin. Settings: /pcue.</Description>
+    <Punchline>Positional hints and an optional Wrath spell forecast.</Punchline>
+    <Description>Positional HUD and target ring with sound cues. Optional experimental Wrath ST/AoE combo-button forecast with current adjusted cast time and per-job hotbar bindings. Reborn and RSR supply direction-only positional hints. No movement or action execution. Settings: /pcue.</Description>
     <Tags>positional;wrath;melee;overlay</Tags>
     <RepoUrl>https://github.com/CheesyChiz/PositionalCue</RepoUrl>
     <IconUrl>https://raw.githubusercontent.com/CheesyChiz/PositionalCue/main/assets/icon.png</IconUrl>

@@ -1,3 +1,11 @@
+# v0.5.0 — spell forecast (experimental)
+
+- Independent draggable Wrath ST/AoE combo-button forecast with per-job bindings and enable switches.
+- Current-state adjusted cast time and instant-cast label; approximate AoE selection using Wrath's threshold.
+- Read-only hotbar/cache integration; no rotation hooks or action execution.
+- Removed all character movement requests, settings and commands. Existing positional sources and player dot retained.
+- Build and automated geometry tests verified; live game validation required.
+
 # v0.4.0 — optional positional movement
 
 - Forward Wrath/RSR positional requests to Reborn GoToPositional via temporary strategy IPC.
